@@ -5,8 +5,8 @@ namespace Arcus.Observability.Correlation
     /// <summary>
     /// Default <see cref="ICorrelationInfoAccessor"/> implementation to access the <typeparamref name="TCorrelationInfo"/> in the current context.
     /// </summary>
-    public class DefaultCorrelationInfoAccessor<TCorrelationInfo> : ICorrelationInfoAccessor<TCorrelationInfo> 
-        where TCorrelationInfo : CorrelationInfo 
+    public class DefaultCorrelationInfoAccessor<TCorrelationInfo> : ICorrelationInfoAccessor<TCorrelationInfo>
+        where TCorrelationInfo : CorrelationInfo
     {
         private TCorrelationInfo _correlationInfo;
 
