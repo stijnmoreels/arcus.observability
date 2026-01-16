@@ -2,6 +2,7 @@
 using Arcus.Observability.Telemetry.Core;
 using Arcus.Observability.Telemetry.Serilog.Enrichers;
 using Arcus.Observability.Tests.Core;
+using Arcus.Testing;
 using Serilog;
 using Serilog.Events;
 using Xunit;
@@ -9,11 +10,18 @@ using Xunit;
 namespace Arcus.Observability.Tests.Integration.Serilog
 {
     [Trait("Category", "Integration")]
-    public class KubernetesEnricherTests
+    public class KubernetesEnricherTests : IntegrationTest
     {
         private const string NodeNameVariable = "KUBERNETES_NODE_NAME",
                              PodNameVariable = "KUBERNETES_POD_NAME",
                              NamespaceVariable = "KUBERNETES_NAMESPACE";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KubernetesEnricherTests"/> class.
+        /// </summary>
+        public KubernetesEnricherTests(ITestOutputHelper outputWriter) : base(outputWriter)
+        {
+        }
 
         [Fact]
         public void LogEvent_WithKubernetesEnricher_HasEnvironmentInformation()
@@ -29,9 +37,9 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(NodeNameVariable, nodeName))
-            using (TemporaryEnvironmentVariable.Create(PodNameVariable, podName))
-            using (TemporaryEnvironmentVariable.Create(NamespaceVariable, @namespace))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(NodeNameVariable, nodeName, Logger))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(PodNameVariable, podName, Logger))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(NamespaceVariable, @namespace, Logger))
             {
                 // Act
                 logger.Information("This log event should be enriched with Kubernetes information");
@@ -40,7 +48,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
             // Assert
             LogEvent logEvent = Assert.Single(spy.CurrentLogEmits);
             Assert.NotNull(logEvent);
-            
+
             Assert.True(logEvent.ContainsProperty(ContextProperties.Kubernetes.NodeName, nodeName), "Log event should contain node name property");
             Assert.True(logEvent.ContainsProperty(ContextProperties.Kubernetes.PodName, podName), "Log event should contain pod name property");
             Assert.True(logEvent.ContainsProperty(ContextProperties.Kubernetes.Namespace, @namespace), "Log event should contain namespace property");
@@ -59,7 +67,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(NodeNameVariable, ignoredNodeName))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(NodeNameVariable, ignoredNodeName, Logger))
             {
                 // Act
                 logger.Information("This log even already has a Kubernetes NodeName {NodeName}", expectedNodeName);
@@ -87,7 +95,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(PodNameVariable, ignoredPodName))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(PodNameVariable, ignoredPodName, Logger))
             {
                 // Act
                 logger.Information("This log even already has a Kubernetes PodName {PodName}", expectedPodName);
@@ -115,7 +123,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(NamespaceVariable, ignoredNamespace))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(NamespaceVariable, ignoredNamespace, Logger))
             {
                 // Act
                 logger.Information("This log even already has a Kubernetes Namespace {Namespace}", expectedNamespace);
@@ -142,7 +150,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(NodeNameVariable, expected))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(NodeNameVariable, expected, Logger))
             {
                 // Act
                 logger.Information("This log event should contain the custom configured Kubernetes property");
@@ -166,7 +174,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(PodNameVariable, expected))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(PodNameVariable, expected, Logger))
             {
                 // Act
                 logger.Information("This log event should contain the custom configured Kubernetes property");
@@ -190,7 +198,7 @@ namespace Arcus.Observability.Tests.Integration.Serilog
                 .WriteTo.Sink(spy)
                 .CreateLogger();
 
-            using (TemporaryEnvironmentVariable.Create(NamespaceVariable, expected))
+            using (TemporaryEnvironmentVariable.SetIfNotExists(NamespaceVariable, expected, Logger))
             {
                 // Act
                 logger.Information("This log event should contain the custom configured Kubernetes property");
