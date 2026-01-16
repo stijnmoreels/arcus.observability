@@ -12,18 +12,20 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
+#pragma warning disable IDE0130 // Extensions should be in the same namespace as the extended type.
 namespace OpenTelemetry
+#pragma warning restore IDE0130
 {
     /// <summary>
     /// Represents the available options to configure the OpenTelemetry <see cref="IObservability"/> implementation
-    /// via <see cref="OpenTelemetryBuilderExtensions.UseObservability(OpenTelemetryBuilder)"/>
+    /// via <see cref="OpenTelemetryBuilderExtensions.UseArcusObservability(OpenTelemetryBuilder,Action{OpenTelemetryObservabilityOptions})"/>
     /// </summary>
     public class OpenTelemetryObservabilityOptions
     {
         internal Func<IServiceProvider, IAppName> AppNameImplementationFactory { get; set; }
         internal Func<IServiceProvider, IAppVersion> AppVersionImplementationFactory { get; set; }
 
-        internal string GetDefaultMeterName()
+        internal static string GetDefaultMeterName()
         {
             return Assembly.GetEntryAssembly()?.GetName().Name ?? "Default.Meter";
         }
@@ -85,9 +87,9 @@ namespace OpenTelemetry
         /// </summary>
         /// <param name="otel">The current OpenTelemetry setup being configured in the application.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="otel"/> is <c>null</c>.</exception>
-        public static OpenTelemetryBuilder UseObservability(this OpenTelemetryBuilder otel)
+        public static OpenTelemetryBuilder UseArcusObservability(this OpenTelemetryBuilder otel)
         {
-            return UseObservability(otel, configureOptions: null);
+            return UseArcusObservability(otel, configureOptions: null);
         }
 
         /// <summary>
@@ -96,7 +98,7 @@ namespace OpenTelemetry
         /// <param name="otel">The current OpenTelemetry setup being configured in the application.</param>
         /// <param name="configureOptions">The additional options to manipulate the behavior of the <see cref="IObservability"/> implementation.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="otel"/> is <c>null</c>.</exception>
-        public static OpenTelemetryBuilder UseObservability(this OpenTelemetryBuilder otel, Action<OpenTelemetryObservabilityOptions> configureOptions)
+        public static OpenTelemetryBuilder UseArcusObservability(this OpenTelemetryBuilder otel, Action<OpenTelemetryObservabilityOptions> configureOptions)
         {
             ArgumentNullException.ThrowIfNull(otel);
 
@@ -127,7 +129,7 @@ namespace OpenTelemetry
                 var source = provider.GetRequiredService<ActivitySource>();
                 var factory = provider.GetRequiredService<IMeterFactory>();
 
-                return new OpenTelemetryObservability(source, factory, options);
+                return new OpenTelemetryObservability(source, factory);
             });
 
             otel.ConfigureResource(resource =>
@@ -146,7 +148,7 @@ namespace OpenTelemetry
             });
             otel.WithMetrics(metrics =>
             {
-                metrics.AddMeter(options.GetDefaultMeterName());
+                metrics.AddMeter(OpenTelemetryObservabilityOptions.GetDefaultMeterName());
             });
 
             return otel;
