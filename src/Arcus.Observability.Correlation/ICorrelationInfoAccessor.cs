@@ -1,4 +1,4 @@
-﻿namespace Arcus.Observability.Correlation 
+﻿namespace Arcus.Observability.Correlation
 {
     /// <summary>
     /// Represents a contract to access the <see cref="CorrelationInfo"/> model.
